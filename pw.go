@@ -46,7 +46,6 @@ func (this *ParseWords) SetLine(s string) {
 	this.buf = s
 }
 
-// xyzzy - TBD
 /*
 
 From: http://blog.golang.org/strings

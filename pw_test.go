@@ -84,6 +84,7 @@ var testCases = []TestCase{
 	/* 55 */ {`'\''`, []string{"\\'"}, false, true, false},
 	/* 56 */ {`'\\'`, []string{"\\\\"}, false, true, false},
 	/* 57 */ {`"a\"b" `, []string{"a\\\"b"}, false, true, false},
+	/* 58 */ {`"日本語\"" `, []string{"日本語\""}, false, false, false},
 }
 
 func arrayEq(a []string, b []string) bool {
@@ -114,6 +115,7 @@ func TestWf0(t *testing.T) {
 	if false {
 		fmt.Printf("keep compiler happy when we are not using fmt.\n")
 	}
+
 	//pw := NewParseWords ()
 	//pw.SetLine ( "  abc def " )
 	//x := pw.GetWords()
