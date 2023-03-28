@@ -6,7 +6,9 @@ pw: parse words
 
 This is for parsing a string into a  set of words.  For Example:
 
-	import "github.com/pschlump/pw"
+	import (
+		pw "github.com/pschlump/pw3"
+	)
 
 	/* ... */
 
