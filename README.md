@@ -14,12 +14,28 @@ This is for parsing a string into a  set of words.  For Example:
 
 	func ParseLineIntoWords(line string) []string {
 		Pw := pw.NewParseWords()
-		Pw.SetOptions("C", true, true)
+		Pw.SetOptions("C", false, false)
 		Pw.SetLine(line)
 		rv := Pw.GetWords()
 		return rv
 	}
 
 Will take a line like this one and return an array of words.
+
+Examples using the above code.
+
+```
+	s := `set aa "{\"ab\":123}"`
+	words := ParseLineIntoWords(s)
+	fmt.Printf ( "%s\n", words )
+```
+
+Outputs in (length 3)
+
+```
+[set aa {"ab":123}]
+```
+
+
 
 
