@@ -69,8 +69,7 @@ func (this *ParseWords) GetWords() []string {
 	this.bufx = []rune(this.buf)
 	l := len(this.bufx)
 	rv := make([]string, 0, 10)
-	// var cs bytes.Buffer
-	cs := &bytes.Buffer{}
+	cs := &bytes.Buffer{} // var cs bytes.Buffer
 	var c rune
 	wf := false
 
