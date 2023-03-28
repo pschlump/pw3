@@ -1,6 +1,7 @@
 package pw
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"unicode"
@@ -11,8 +12,9 @@ const (
 )
 
 type ParseWords struct {
-	buf string // Current string
-	pos int    // where we are in string
+	buf  string // Current string
+	bufx []rune
+	pos  int // where we are in string
 	// st  int    // current state for DFA
 	db bool   // Debuging Flat
 	qf string // "C"		== '" with \
@@ -65,19 +67,23 @@ func (this *ParseWords) GetWords() []string {
 	}
 
 	i := this.pos
-	l := len(this.buf)
+	this.bufx = []rune(this.buf)
+	l := len(this.bufx)
 	rv := make([]string, 0, 10)
-	cs := ""
-	c := ""
+	// var cs bytes.Buffer
+	cs := &bytes.Buffer{}
+	var c rune
 	wf := false
+
 	var getC = func(this_st int) {
 		if i < l {
-			c = this.buf[i : i+1]
+			// c = this.buf[i : i+1]
+			c = this.bufx[i]
 			if this.db {
-				fmt.Printf("top st=%d c->%s<-\n", this_st, c)
+				fmt.Printf("top st=%d c->%c<-\n", this_st, c)
 			}
 		} else {
-			c = ""
+			c = rune(0)
 		}
 	}
 
@@ -85,36 +91,36 @@ x0: // scan across to blank
 	getC(0)
 	if i >= l {
 		goto x99
-	} else if c == "\"" {
+	} else if c == '"' {
 		// this.st = 1
-		cs = ""
+		cs = &bytes.Buffer{}
 		if this.keep_quote {
-			cs += c
+			cs.WriteRune(c)
 		}
 		wf = true
 		i++
 		goto x1
-	} else if c == "'" {
+	} else if c == '\'' {
 		// this.st = 11
-		cs = ""
+		cs = &bytes.Buffer{}
 		if this.keep_quote {
-			cs += c
+			cs.WriteRune(c)
 		}
 		wf = true
 		i++
 		goto x11
-	} else if unicode.IsSpace(rune(c[0])) {
+	} else if unicode.IsSpace(c) {
 		// this.st = 2
 		if wf {
-			rv = append(rv, cs)
-			cs = ""
+			rv = append(rv, cs.String())
+			cs = &bytes.Buffer{}
 			wf = false
 		}
 		i++
 		goto x2
 	} else {
 		wf = true
-		cs += c
+		cs.WriteRune(c)
 		i++
 		goto x0
 	}
@@ -122,27 +128,27 @@ x1: // Start of "
 	getC(1)
 	if i >= l {
 		goto x99
-	} else if c == "\\" {
+	} else if c == '\\' {
 		// this.st = 3
 		if this.keep_backslash {
-			cs += c
+			cs.WriteRune(c)
 		}
 		i++
 		goto x3
-	} else if c == "\"" {
+	} else if c == '"' {
 		// this.st = 0
 		if this.keep_quote {
-			cs += c
+			cs.WriteRune(c)
 		}
 		if wf {
-			rv = append(rv, cs)
-			cs = ""
+			rv = append(rv, cs.String())
+			cs = &bytes.Buffer{}
 			wf = false
 		}
 		i++
 		goto x0
 	} else {
-		cs += c
+		cs.WriteRune(c)
 		i++
 		goto x1
 	}
@@ -150,27 +156,27 @@ x11: // Start of "
 	getC(11)
 	if i >= l {
 		goto x99
-	} else if c == "\\" {
+	} else if c == '\\' {
 		// this.st = 13
 		if this.keep_backslash {
-			cs += c
+			cs.WriteRune(c)
 		}
 		i++
 		goto x13
-	} else if c == "'" {
+	} else if c == '\'' {
 		// this.st = 0
 		if this.keep_quote {
-			cs += c
+			cs.WriteRune(c)
 		}
 		if wf {
-			rv = append(rv, cs)
-			cs = ""
+			rv = append(rv, cs.String())
+			cs = &bytes.Buffer{}
 			wf = false
 		}
 		i++
 		goto x0
 	} else {
-		cs += c
+		cs.WriteRune(c)
 		i++
 		goto x11
 	}
@@ -179,33 +185,33 @@ x2: // Found blank
 	getC(2)
 	if i >= l {
 		goto x99
-	} else if unicode.IsSpace(rune(c[0])) {
+	} else if unicode.IsSpace(c) {
 		i++
 		goto x2
-	} else if c == "\"" {
+	} else if c == '"' {
 		wf = true
 		// this.st = 4
 		wf = true
-		cs = ""
+		cs = &bytes.Buffer{}
 		if this.keep_quote {
-			cs += c
+			cs.WriteRune(c)
 		}
 		i++
 		goto x4
-	} else if c == "'" {
+	} else if c == '\'' {
 		wf = true
 		// this.st = 14
 		wf = true
-		cs = ""
+		cs = &bytes.Buffer{}
 		if this.keep_quote {
-			cs += c
+			cs.WriteRune(c)
 		}
 		i++
 		goto x14
 	} else {
 		wf = true
 		// this.st = 0
-		cs = c
+		cs.WriteRune(c)
 		i++
 		goto x0
 	}
@@ -215,7 +221,7 @@ x3: // \" processing
 		goto x99
 	} else {
 		// this.st = 1
-		cs += c
+		cs.WriteRune(c)
 		i++
 		goto x1
 	}
@@ -225,7 +231,7 @@ x13: // \' processing
 		goto x99
 	} else {
 		// this.st = 11
-		cs += c
+		cs.WriteRune(c)
 		i++
 		goto x11
 	}
@@ -233,26 +239,26 @@ x4: // scan across to blank
 	getC(4)
 	if i >= l {
 		goto x99
-	} else if c == "\"" {
+	} else if c == '"' {
 		// this.st = 0
 		if this.keep_quote {
-			cs += c
+			cs.WriteRune(c)
 		}
-		rv = append(rv, cs)
-		cs = ""
+		rv = append(rv, cs.String())
+		cs = &bytes.Buffer{}
 		wf = false
 		i++
 		goto x0
-	} else if c == "\\" {
+	} else if c == '\\' {
 		// this.st = 5
 		if this.keep_backslash {
-			cs += c
+			cs.WriteRune(c)
 		}
 		i++
 		goto x5
 	} else {
 		wf = true
-		cs += c
+		cs.WriteRune(c)
 		i++
 		goto x4
 	}
@@ -260,26 +266,26 @@ x14: // scan across to blank
 	getC(14)
 	if i >= l {
 		goto x99
-	} else if c == "'" {
+	} else if c == '\'' {
 		// this.st = 0
 		if this.keep_quote {
-			cs += c
+			cs.WriteRune(c)
 		}
-		rv = append(rv, cs)
-		cs = ""
+		rv = append(rv, cs.String())
+		cs = &bytes.Buffer{}
 		wf = false
 		i++
 		goto x0
-	} else if c == "\\" {
+	} else if c == '\\' {
 		// this.st = 15
 		if this.keep_backslash {
-			cs += c
+			cs.WriteRune(c)
 		}
 		i++
 		goto x15
 	} else {
 		wf = true
-		cs += c
+		cs.WriteRune(c)
 		i++
 		goto x14
 	}
@@ -289,7 +295,7 @@ x5: // \" processing
 		goto x99
 	} else {
 		// this.st = 4
-		cs += c
+		cs.WriteRune(c)
 		i++
 		goto x4
 	}
@@ -299,14 +305,14 @@ x15: // \' processing
 		goto x99
 	} else {
 		// this.st = 14
-		cs += c
+		cs.WriteRune(c)
 		i++
 		goto x14
 	}
 
 x99:
 	if wf {
-		rv = append(rv, cs)
+		rv = append(rv, cs.String())
 	}
 	return rv
 }
