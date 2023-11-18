@@ -85,6 +85,8 @@ var testCases = []TestCase{
 	/* 56 */ {`'\\'`, []string{"\\\\"}, false, true, false},
 	/* 57 */ {`"a\"b" `, []string{"a\\\"b"}, false, true, false},
 	/* 58 */ {`"日本語\"" `, []string{"日本語\""}, false, false, false},
+
+	/* 59 */ {`'{"abc": "def"}`, []string{"{\"abc\": \"def\"}"}, false, false, false},
 }
 
 func arrayEq(a []string, b []string) bool {

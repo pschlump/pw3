@@ -12,22 +12,23 @@ const (
 )
 
 type ParseWords struct {
-	buf  string // Current string
-	bufx []rune
-	pos  int // where we are in string
-	// st  int    // current state for DFA
-	db bool   // Debuging Flat
-	qf string // "C"		== '" with \
-	// "SQL"	== "" or ''				// xyzzy - TBD
-	// "none"	== ignore quotes - just split on blanks
-	keep_quote     bool // Keep ' and " in output
-	keep_backslash bool // Keep \\ in output
+	buf            string // Current string
+	bufx           []rune //
+	pos            int    // where we are in string
+	db             bool   // Debuging Flag
+	qf             string // "C"		== '" with \,   "SQL", "...???..."  - style of quoting.		Not really implemented yet.
+	keep_quote     bool   // Keep ' and " in output
+	keep_backslash bool   // Keep \\ in output
 }
 
 func NewParseWords() (pw *ParseWords) {
 	return &ParseWords{qf: "C", db: false, keep_quote: false, keep_backslash: false}
 }
 
+// SetOptions configures from the default options.
+//
+// kq - keep qutoes in string.
+// kb - keep backslashes
 func (this *ParseWords) SetOptions(qf string, kq, kb bool) {
 	this.qf = qf
 	this.keep_quote = kq
